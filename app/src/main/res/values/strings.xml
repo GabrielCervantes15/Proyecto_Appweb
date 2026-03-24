@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Proyecto</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="correo">Correo o Usuario</string>
+    <string name="entrar">ENTRAR</string>
+    <string name="sin_cuenta">¿No tienes cuenta? Regístrate</string>
+    <string name="buscar_producto">Buscar producto...</string>
+    <string name="nombre_oso_grande_globos">Oso Gigante con Globos</string>
+    <string name="precio_oso_gigante_globos">$450.00</string>
+    <string name="descripcion_oso_gigante_globos">Este detalle incluye un peluche de alta calidad, tres globos de helio personalizados y una tarjeta de regalo. Ideal para aniversarios.</string>
+    <string name="añadir_carrito">AÑADIR AL CARRITO</string>
+    <string name="nombre_vacio">Nombre del Regalo</string>
+    <string name="precio_vacio">$0.00</string>
+    <string name="carrito_regalos">Mi Carrito de Regalos</string>
+    <string name="total_pagar">Total a pagar:</string>
+    <string name="pagar_ahora">PAGAR AHORA</string>
+    <string name="crea_tu_cuenta">Crea tu cuenta</string>
+    <string name="nombre_completo">Nombre completo</string>
+    <string name="correo_electr_nico">Correo electrónico</string>
+    <string name="registrarme">REGISTRARME</string>
+    <string name="tienes_inicia_sesion">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="cargando_sorpresas">Cargando sorpresas...</string>
+    <string name="logo_happy_box">Logo Happy Box</string>
+    <string name="datos_de_pago_seguro">Datos de Pago Seguro</string>
+    <string name="n_mero_de_tarjeta_16_d_gitos">Número de Tarjeta (16 dígitos)</string>
+    <string name="mm_aa">MM/AA</string>
+    <string name="cvv">CVV</string>
+    <string name="confirmar_y_pagar">CONFIRMAR Y PAGAR</string>
+    <string name="eliminar">Eliminar</string>
+</resources>
