@@ -19,10 +19,13 @@ class activity_detail : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_detail)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        val mainView = findViewById<android.view.View>(R.id.main)
+        if (mainView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                insets
+            }
         }
 
         val imgDetalle = findViewById<ImageView>(R.id.ivProductLarge)
@@ -57,7 +60,7 @@ class activity_detail : AppCompatActivity() {
 
             btnAgregar.setOnClickListener {
                 regaloSeleccionado.cantidad = cantidadSeleccionada
-                Carrito.agregar(regaloSeleccionado)
+                Carrito.agregar(regaloSeleccionado, this)
 
                 Toast.makeText(this, "${regaloSeleccionado.nombre} ($cantidadSeleccionada) agregado", Toast.LENGTH_SHORT).show()
                 finish()

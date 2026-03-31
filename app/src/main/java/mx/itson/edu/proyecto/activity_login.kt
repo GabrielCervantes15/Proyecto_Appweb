@@ -1,5 +1,6 @@
 package mx.itson.edu.proyecto
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -23,11 +24,19 @@ class activity_login : AppCompatActivity() {
 
         val tvRegistrate = findViewById<TextView>(R.id.tvRegister)
         val btnEntrar = findViewById<Button>(R.id.btnLogin)
+
         tvRegistrate.setOnClickListener {
             val intent = Intent(this, activity_registro::class.java)
             startActivity(intent)
         }
+
         btnEntrar.setOnClickListener {
+            val sharedPref = getSharedPreferences("SesionUsuario", Context.MODE_PRIVATE)
+            with(sharedPref.edit()) {
+                putBoolean("logueado", true)
+                apply()
+            }
+
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)

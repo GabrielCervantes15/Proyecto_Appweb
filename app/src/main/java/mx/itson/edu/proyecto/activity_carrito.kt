@@ -1,91 +1,91 @@
 package mx.itson.edu.proyecto
 
-import android.content.Intent
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
 class activity_carrito : AppCompatActivity() {
+    private lateinit var adapter: RegaloAdapter
+    private lateinit var tvTotal: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_carrito)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        val rvCart = findViewById<RecyclerView>(R.id.rvCartItems)
-        val tvTotal = findViewById<TextView>(R.id.tvTotalCart)
+        val rvCarrito = findViewById<RecyclerView>(R.id.rvCartItems)
+        tvTotal = findViewById(R.id.tvTotalCart)
         val btnPagar = findViewById<Button>(R.id.btnFinalizarCompra)
 
-        val adapter = RegaloAdapter(Carrito.productosSeleccionados) {
-            tvTotal.text = "$${Carrito.calcularTotal()}"
-            if (Carrito.productosSeleccionados.isEmpty()) {
-                Toast.makeText(this, "El carrito está vacío", Toast.LENGTH_SHORT).show()
-            }
+        actualizarTotal()
+
+        adapter = RegaloAdapter(Carrito.productosSeleccionados) {
+            actualizarTotal()
         }
 
-        rvCart.adapter = adapter
-        rvCart.layoutManager = LinearLayoutManager(this)
-
-        tvTotal.text = "$${Carrito.calcularTotal()}"
+        rvCarrito.layoutManager = LinearLayoutManager(this)
+        rvCarrito.adapter = adapter
 
         btnPagar.setOnClickListener {
-            val montoActual = Carrito.calcularTotal()
-            if (montoActual > 0) {
-                mostrarVentanaPago(montoActual)
+            if (Carrito.productosSeleccionados.isEmpty()) {
+                Toast.makeText(this, "El carrito está vacío", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "El carrito está vacío. ¡Agrega un regalo!", Toast.LENGTH_SHORT).show()
+                mostrarDialogoPago()
             }
         }
     }
 
-    private fun mostrarVentanaPago(monto: Double) {
-        val dialog = BottomSheetDialog(this)
-        val vista = layoutInflater.inflate(R.layout.activity_diseno_pago, null)
-        val btnConfirmar = vista.findViewById<Button>(R.id.btnConfirmarPagoReal)
-        val etTarjeta = vista.findViewById<EditText>(R.id.etNumeroTarjeta)
+    private fun actualizarTotal() {
+        tvTotal.text = "Total: $${Carrito.obtenerTotal()}"
+    }
 
-        btnConfirmar.text = "Confirmar y Pagar $$monto"
+    private fun mostrarDialogoPago() {
+        val dialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.activity_diseno_pago, null)
+        dialog.setContentView(view)
+
+        val etTarjeta = view.findViewById<EditText>(R.id.etNumeroTarjeta)
+        val btnConfirmar = view.findViewById<Button>(R.id.btnConfirmarPagoReal)
+
+        val sharedPref = getSharedPreferences("SesionUsuario", Context.MODE_PRIVATE)
+        val correo = sharedPref.getString("correo_usuario", "")
+
+        if (!correo.isNullOrEmpty()) {
+            val dbHelper = UserDBHelper(this)
+            val tarjetaGuardada = dbHelper.obtenerTarjeta(correo)
+
+            if (tarjetaGuardada.isNotEmpty()) {
+                etTarjeta.setText(tarjetaGuardada)
+            }
+        }
 
         btnConfirmar.setOnClickListener {
-            val numero = etTarjeta.text.toString()
-            if (numero.length < 16) {
-                etTarjeta.error = "Número incompleto (16 dígitos)"
+            val numTarjeta = etTarjeta.text.toString().trim()
+
+            if (numTarjeta.length == 16) {
+                if (!correo.isNullOrEmpty()) {
+                    val dbHelper = UserDBHelper(this)
+                    val resultado = dbHelper.actualizarTarjeta(correo, numTarjeta)
+
+                    if (resultado > 0) {
+                        Toast.makeText(this, "Pago procesado con éxito", Toast.LENGTH_LONG).show()
+                        Carrito.limpiar(this)
+                        dialog.dismiss()
+                        finish()
+                    } else {
+                        Toast.makeText(this, "Error al procesar el pago", Toast.LENGTH_SHORT).show()
+                    }
+                }
             } else {
-                dialog.dismiss()
-                procesarPagoFinal(monto)
+                Toast.makeText(this, "La tarjeta debe tener 16 dígitos", Toast.LENGTH_SHORT).show()
             }
         }
-
-        dialog.setContentView(vista)
         dialog.show()
-    }
-
-    private fun procesarPagoFinal(monto: Double) {
-        Toast.makeText(this, "Procesando pago de $$monto...", Toast.LENGTH_SHORT).show()
-
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            Carrito.productosSeleccionados.clear()
-            Toast.makeText(this, "¡Compra Exitosa! El carrito se ha vaciado.", Toast.LENGTH_LONG).show()
-
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            finish()
-        }, 2000)
     }
 }

@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        Carrito.cargarDeBaseDeDatos(this)
         val btnGlobos = findViewById<Button>(R.id.btnGlobos)
         val btnTazas = findViewById<Button>(R.id.btnTazas)
         val btnPeluches = findViewById<Button>(R.id.btnPeluches)

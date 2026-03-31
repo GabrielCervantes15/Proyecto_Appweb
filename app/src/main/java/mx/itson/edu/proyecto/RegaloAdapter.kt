@@ -59,8 +59,8 @@ class RegaloAdapter(
 
         holder.btnEliminar?.setOnClickListener {
             val currentPos = holder.bindingAdapterPosition
-            if (currentPos != RecyclerView.NO_POSITION && currentPos < listaRegalos.size) {
-                listaRegalos.removeAt(currentPos)
+            if (currentPos != RecyclerView.NO_POSITION) {
+                Carrito.eliminar(currentPos, context)
                 notifyItemRemoved(currentPos)
                 notifyItemRangeChanged(currentPos, listaRegalos.size)
                 onItemDeleted()
