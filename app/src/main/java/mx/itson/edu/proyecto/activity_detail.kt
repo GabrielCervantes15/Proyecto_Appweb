@@ -2,6 +2,7 @@ package mx.itson.edu.proyecto
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -11,20 +12,29 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class activity_detail : AppCompatActivity() {
+    private var cantidadSeleccionada = 1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_detail)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         val imgDetalle = findViewById<ImageView>(R.id.ivProductLarge)
         val tvNombre = findViewById<TextView>(R.id.tvDetailTitle)
         val tvPrecio = findViewById<TextView>(R.id.tvDetailPrice)
         val tvDescripcion = findViewById<TextView>(R.id.tvDescription)
         val btnAgregar = findViewById<Button>(R.id.btnAddToCart)
+
+        val tvQty = findViewById<TextView>(R.id.tvQuantity)
+        val btnPlus = findViewById<ImageButton>(R.id.btnPlus)
+        val btnMinus = findViewById<ImageButton>(R.id.btnMinus)
+
         val regaloSeleccionado = intent.getSerializableExtra("objetoRegalo") as? Regalo
 
         if (regaloSeleccionado != null) {
@@ -33,15 +43,25 @@ class activity_detail : AppCompatActivity() {
             tvDescripcion.text = regaloSeleccionado.descripcion
             imgDetalle.setImageResource(regaloSeleccionado.imagenRes)
 
+            btnPlus.setOnClickListener {
+                cantidadSeleccionada++
+                tvQty.text = cantidadSeleccionada.toString()
+            }
+
+            btnMinus.setOnClickListener {
+                if (cantidadSeleccionada > 1) {
+                    cantidadSeleccionada--
+                    tvQty.text = cantidadSeleccionada.toString()
+                }
+            }
 
             btnAgregar.setOnClickListener {
-                Carrito.productosSeleccionados.add(regaloSeleccionado)
-                Toast.makeText(this, "${regaloSeleccionado.nombre} agregado al carrito", Toast.LENGTH_SHORT).show()
+                regaloSeleccionado.cantidad = cantidadSeleccionada
+                Carrito.agregar(regaloSeleccionado)
+
+                Toast.makeText(this, "${regaloSeleccionado.nombre} ($cantidadSeleccionada) agregado", Toast.LENGTH_SHORT).show()
                 finish()
             }
-        } else {
-            Toast.makeText(this, "Error al cargar el producto", Toast.LENGTH_SHORT).show()
         }
-
     }
 }

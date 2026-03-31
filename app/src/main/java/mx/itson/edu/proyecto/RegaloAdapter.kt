@@ -18,6 +18,7 @@ class RegaloAdapter(
         val img: ImageView = view.findViewById(R.id.imgProduct)
         val nombre: TextView = view.findViewById(R.id.txtName)
         val precio: TextView = view.findViewById(R.id.txtPrice)
+        val btnEliminar: ImageButton? = view.findViewById(R.id.btnEliminar)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RegaloViewHolder {
@@ -34,18 +35,20 @@ class RegaloAdapter(
         val regalo = listaRegalos[position]
         val context = holder.itemView.context
 
-        holder.nombre.text = regalo.nombre
-        holder.precio.text = "$${regalo.precio}"
+        if (context is activity_carrito && regalo.cantidad > 1) {
+            holder.nombre.text = "${regalo.nombre} (x${regalo.cantidad})"
+        } else {
+            holder.nombre.text = regalo.nombre
+        }
+
+        holder.precio.text = "$${regalo.precio * regalo.cantidad}"
         holder.img.setImageResource(regalo.imagenRes)
 
-        val btnEliminar = holder.itemView.findViewById<ImageButton>(R.id.btnEliminar)
-
         if (context is activity_carrito) {
-            btnEliminar?.visibility = View.VISIBLE
+            holder.btnEliminar?.visibility = View.VISIBLE
+            holder.itemView.setOnClickListener(null)
         } else {
-            btnEliminar?.visibility = View.GONE
-
-            // El clic al detalle solo funciona en la MainActivity (Catálogo)
+            holder.btnEliminar?.visibility = View.GONE
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, activity_detail::class.java).apply {
                     putExtra("objetoRegalo", regalo)
@@ -54,15 +57,14 @@ class RegaloAdapter(
             }
         }
 
-        btnEliminar?.setOnClickListener {
-            // Importante: Eliminar también del objeto Global Carrito
-            if (context is activity_carrito) {
-                Carrito.productosSeleccionados.removeAt(position)
+        holder.btnEliminar?.setOnClickListener {
+            val currentPos = holder.bindingAdapterPosition
+            if (currentPos != RecyclerView.NO_POSITION && currentPos < listaRegalos.size) {
+                listaRegalos.removeAt(currentPos)
+                notifyItemRemoved(currentPos)
+                notifyItemRangeChanged(currentPos, listaRegalos.size)
+                onItemDeleted()
             }
-            listaRegalos.removeAt(position)
-            notifyItemRemoved(position)
-            notifyItemRangeChanged(position, listaRegalos.size)
-            onItemDeleted()
         }
     }
 

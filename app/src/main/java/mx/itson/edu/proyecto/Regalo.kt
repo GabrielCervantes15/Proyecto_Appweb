@@ -7,5 +7,6 @@ data class Regalo(
     val precio: Double,
     val descripcion: String,
     val categoria: String,
-    val imagenRes: Int
+    val imagenRes: Int,
+    var cantidad: Int = 1
 ) : Serializable

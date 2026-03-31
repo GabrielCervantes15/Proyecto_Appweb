@@ -7,10 +7,9 @@ object Carrito {
         productosSeleccionados.add(regalo)
     }
 
-    fun obtenerTotal(): Double {
-        return productosSeleccionados.sumOf { it.precio }
-    }
     fun calcularTotal(): Double {
-        return productosSeleccionados.sumOf { it.precio }
+        return productosSeleccionados.sumOf { it.precio * it.cantidad }
     }
+
+    fun obtenerTotal(): Double = calcularTotal()
 }
