@@ -1,3 +1,4 @@
+-- base de datos --
 DROP DATABASE IF EXISTS happy_box_db;
 CREATE DATABASE IF NOT EXISTS happy_box_db;
 USE happy_box_db;
