@@ -18,19 +18,35 @@
         android:background="?attr/colorSurface"
         android:elevation="4dp">
 
-        <EditText
-            android:id="@+id/searchFilter"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/buscar_producto"
-            android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="10dp"
-            android:padding="12dp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textColorHint="?android:attr/textColorSecondary"
-            android:background="?android:attr/editTextBackground"
-            android:importantForAutofill="no"
-            android:inputType="text" />
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/searchFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@+id/btnLogout"
+                android:layout_marginEnd="8dp"
+                android:hint="@string/buscar_producto"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="10dp"
+                android:padding="12dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:background="?android:attr/editTextBackground"
+                android:inputType="text" />
+
+            <ImageButton
+                android:id="@+id/btnLogout"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Cerrar sesión"
+                android:src="@android:drawable/ic_lock_power_off"
+                app:tint="?attr/colorPrimary" />
+        </RelativeLayout>
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -49,8 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Todos"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Todos" />
 
                 <Button
                     android:id="@+id/btnGlobos"
@@ -58,8 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Globos"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Globos" />
 
                 <Button
                     android:id="@+id/btnPeluches"
@@ -67,8 +81,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Peluches"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Peluches" />
 
                 <Button
                     android:id="@+id/btnTazas"
@@ -76,8 +89,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Tazas"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Tazas" />
+
                 <Button
                     android:id="@+id/btnJuegos"
                     style="@style/Widget.MaterialComponents.Button.TextButton"

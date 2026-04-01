@@ -1,6 +1,5 @@
 package mx.itson.edu.proyecto
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -17,8 +16,8 @@ class activity_splash : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         val mainView = findViewById<android.view.View>(R.id.main_splash)
-        if (mainView != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
+        mainView?.let {
+            ViewCompat.setOnApplyWindowInsetsListener(it) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
                 insets
@@ -26,14 +25,7 @@ class activity_splash : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            val sharedPref = getSharedPreferences("SesionUsuario", Context.MODE_PRIVATE)
-            val estaLogueado = sharedPref.getBoolean("logueado", false)
-
-            if (estaLogueado) {
-                startActivity(Intent(this, MainActivity::class.java))
-            } else {
-                startActivity(Intent(this, activity_login::class.java))
-            }
+            startActivity(Intent(this, activity_login::class.java))
             finish()
         }, 3000)
     }
