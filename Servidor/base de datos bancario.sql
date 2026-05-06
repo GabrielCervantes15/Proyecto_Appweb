@@ -12,7 +12,5 @@ CREATE TABLE tarjetas (
     titular VARCHAR(100) NOT NULL,
     correo_propietario VARCHAR(100) NOT NULL 
 );
-
 INSERT INTO tarjetas (numero_tarjeta, cvv, fecha_expiracion, saldo, titular, correo_propietario) 
-VALUES ('1234567812345678', '123', '12/28', 5000.00, 'el feo', 'nose@gmail.com');
-select*from tarjetas;
+VALUES ('1234567812345678', '123', '12/28', 5000.00, 'luis Rafael Lagarda', 'luisrafaellagarda@gmail.com');
