@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -16,17 +17,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-
-interface ProductoService {
-    @GET("productos")
-    fun obtenerProductos(): Call<List<Regalo>>
-}
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class MainActivity : AppCompatActivity() {
     private lateinit var adapter: RegaloAdapter
@@ -59,26 +53,7 @@ class MainActivity : AppCompatActivity() {
             val btnLogout = findViewById<ImageButton>(R.id.btnLogout)
 
             setupCategoryButtons()
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(Constants.URL_TIENDA)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            val service = retrofit.create(ProductoService::class.java)
-
-            service.obtenerProductos().enqueue(object : Callback<List<Regalo>> {
-                override fun onResponse(call: Call<List<Regalo>>, response: Response<List<Regalo>>) {
-                    if (response.isSuccessful) {
-                        listaOriginal = response.body() ?: listOf()
-                        adapter.actualizarLista(listaOriginal)
-                    }
-                }
-                override fun onFailure(call: Call<List<Regalo>>, t: Throwable) {
-                    Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
-                }
-            })
-
+            configurarFirebase()
             fabCart?.setOnClickListener {
                 startActivity(Intent(this, activity_carrito::class.java))
             }
@@ -98,6 +73,29 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun configurarFirebase() {
+        val database = FirebaseDatabase.getInstance().getReference("productos")
+
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val listaNueva = mutableListOf<Regalo>()
+
+                for (data in snapshot.children) {
+                    val regalo = data.getValue(Regalo::class.java)
+                    regalo?.let { listaNueva.add(it) }
+                }
+
+                listaOriginal = listaNueva
+                adapter.actualizarLista(listaOriginal)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseError", error.message)
+                Toast.makeText(this@MainActivity, "Error al cargar productos", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun cerrarSesion() {

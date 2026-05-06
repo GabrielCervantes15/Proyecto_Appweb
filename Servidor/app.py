@@ -1,113 +1,50 @@
 from flask import Flask, request, jsonify
-from mysql.connector import pooling
-import mysql.connector
+import firebase_admin
+from firebase_admin import credentials, db
 
 app = Flask(__name__)
 
-# Configuración de la base de datos
-db_config = {
-    "database": "happy_box_db",
-    "user": "root",
-    "password": "xrapayel", 
-    "host": "localhost"
-}
-
-connection_pool = pooling.MySQLConnectionPool(
-    pool_name="mypool",
-    pool_size=10,
-    **db_config
-)
-
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.json
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        query = "SELECT nombre, correo FROM usuarios WHERE correo = %s AND password = %s"
-        cursor.execute(query, (data['correo'], data['password']))
-        user = cursor.fetchone()
-        
-        if user:
-            return jsonify({"status": "success", "user": user}), 200
-        return jsonify({"status": "error", "message": "Credenciales inválidas"}), 401
-    finally:
-        if 'cursor' in locals(): cursor.close()
-        if 'conn' in locals(): conn.close()
-
-@app.route('/productos', methods=['GET'])
-def get_productos():
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Obtenemos los productos. imagen_url ya viene completa desde el SQL.
-        cursor.execute("SELECT nombre, precio, descripcion, categoria, imagen_url, stock FROM productos")
-        rows = cursor.fetchall()
-        
-        return jsonify(rows), 200
-    finally:
-        if 'cursor' in locals(): cursor.close()
-        if 'conn' in locals(): conn.close()
-
-@app.route('/registro', methods=['POST'])
-def registro():
-    data = request.json
-    try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
-        
-        query = "INSERT INTO usuarios (nombre, correo, password) VALUES (%s, %s, %s)"
-        cursor.execute(query, (data['nombre'], data['correo'], data['password']))
-        conn.commit()
-        return jsonify({"status": "success"}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"status": "error", "message": "El correo ya está registrado" if err.errno == 1062 else str(err)}), 400
-    finally:
-        if 'cursor' in locals(): cursor.close()
-        if 'conn' in locals(): conn.close()
-
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://proyecto-54e6c-default-rtdb.firebaseio.com/'
+})
 
 @app.route('/actualizar_stock', methods=['POST'])
 def actualizar_stock():
     data = request.get_json()
-    productos = data.get('productos', [])
-    
-    # Error corregido: Usar el pool de conexiones en lugar de crear_conexion()
-    conn = None
-    cursor = None
+    productos_carrito = data.get('productos', [])
     
     try:
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # 1. Validar que TODOS los productos tengan stock suficiente antes de restar nada
-        for item in productos:
-            cursor.execute("SELECT stock FROM productos WHERE nombre = %s", (item['nombre'],))
-            producto_db = cursor.fetchone()
+        ref_productos = db.reference('productos')
+        productos_db = ref_productos.get()
+
+        if not productos_db:
+            return jsonify({"status": "error", "message": "No hay productos en la base de datos"}), 404
+
+        for item_carrito in productos_carrito:
+            encontrado = False
+            for i, p_db in enumerate(productos_db):
+                if p_db['nombre'] == item_carrito['nombre']:
+                    encontrado = True
+                    if p_db['stock'] < item_carrito['cantidad']:
+                        return jsonify({"status": "error", "message": f"Stock insuficiente para {item_carrito['nombre']}"}), 400
+                    break
             
-            if not producto_db:
-                return jsonify({"status": "error", "message": f"Producto {item['nombre']} no encontrado"}), 404
-            
-            if producto_db['stock'] < item['cantidad']:
-                return jsonify({"status": "error", "message": f"Stock insuficiente para {item['nombre']} (Quedan {producto_db['stock']})"}), 400
-        
-        # 2. Si llegamos aquí, hay stock de todo. Procedemos a descontar.
-        for item in productos:
-            cursor.execute("UPDATE productos SET stock = stock - %s WHERE nombre = %s", 
-                           (item['cantidad'], item['nombre']))
-        
-        conn.commit()
-        return jsonify({"status": "success", "message": "Stock actualizado correctamente"}), 200
+            if not encontrado:
+                return jsonify({"status": "error", "message": f"Producto {item_carrito['nombre']} no encontrado"}), 404
+
+        for item_carrito in productos_carrito:
+            for i, p_db in enumerate(productos_db):
+                if p_db['nombre'] == item_carrito['nombre']:
+                    nuevo_stock = p_db['stock'] - item_carrito['cantidad']
+                    ref_productos.child(str(i)).update({'stock': nuevo_stock})
+                    break
+
+        return jsonify({"status": "success", "message": "Compra procesada en Firebase"}), 200
 
     except Exception as e:
-        if conn: conn.rollback()
+        print(f"Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        if cursor: cursor.close()
-        if conn: conn.close()
 
 if __name__ == '__main__':
-    # host='0.0.0.0' es vital para que Android Studio lo vea
     app.run(host='0.0.0.0', port=5000, debug=True)
